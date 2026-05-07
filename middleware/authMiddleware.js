@@ -21,10 +21,7 @@ export const protect = (req, res, next) => {
     }
 
     // 3️⃣ Verify token
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET
-    );
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
 
     // 4️⃣ Attach user/admin
     req.admin = decoded;
