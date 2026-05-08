@@ -29,7 +29,11 @@ app.use(express.urlencoded({ extended: true }));
 // ================= CORS =================
 app.use(
   cors({
-    origin: "*",
+    origin: [
+      "http://localhost:3000",
+      "http://localhost:5173",
+      "https://event-app-eosin-rho.vercel.app",
+    ],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
