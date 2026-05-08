@@ -19,28 +19,25 @@ import NotificationRouter from "./Router/NotificationRouter.js";
 // ================= APP =================
 const app = express();
 
-// ================= CORS (PRODUCTION + LOCAL) =================
+// ================= DATABASE =================
+Dbconnection();
+
+// ================= MIDDLEWARE =================
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// ================= CORS =================
 app.use(
   cors({
-    origin: [
-      "http://localhost:3000",
-      "http://localhost:5173",
-      "https://your-frontend-domain.com" // 🔴 CHANGE THIS TO YOUR REAL FRONTEND URL
-    ],
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
 );
 
-// ================= MIDDLEWARE =================
-app.use(express.json());
-
 // ================= STATIC FILES =================
-// for images / uploads
 app.use("/upload", express.static("upload"));
 app.use("/uploads", express.static("uploads"));
-
-// ================= DATABASE =================
-Dbconnection();
 
 // ================= ROUTES =================
 app.use("/api/v1/user", Userrouter);
@@ -52,21 +49,22 @@ app.use("/api/v1/booking", Bookingrouter);
 app.use("/api/contact", Contactrouter);
 app.use("/api/v1/notification", NotificationRouter);
 
-// ================= TEST ROUTE =================
+// ================= HOME ROUTE =================
 app.get("/", (req, res) => {
-  res.send("API is running 🚀");
+  res.status(200).send("API is running 🚀");
 });
 
-// ================= ERROR HANDLING (OPTIONAL BUT GOOD) =================
+// ================= ERROR HANDLER =================
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  console.error(err);
+
   res.status(500).json({
     success: false,
-    message: "Something went wrong on server",
+    message: "Internal Server Error",
   });
 });
 
-// ================= SERVER START =================
+// ================= SERVER =================
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
