@@ -3,153 +3,194 @@ import Event from "../Model/Eventmodel.js";
 // ================= CREATE EVENT =================
 export const createEvent = async (req, res) => {
   try {
+
+    console.log("BODY:", req.body);
+    console.log("FILE:", req.file);
+
     const {
       title,
       parentEvent,
       realPrice,
       profit,
-      date,
-      time,
-      place
     } = req.body;
 
-    const event = await Event.create({
+    // ✅ Check title
+    if (!title) {
+      return res.status(400).json({
+        success: false,
+        message: "Title is required",
+      });
+    }
+
+    // ✅ Image
+    const image = req.file
+      ? req.file.filename
+      : "";
+
+    // ✅ Create event
+    const newEvent = new Event({
       title,
       parentEvent: parentEvent || null,
+      image,
       realPrice: realPrice || 0,
       profit: profit || 0,
-      date: date || null,
-      time: time || null,
-      place: place || "",
-      image: req.file ? req.file.filename : "",
     });
+
+    // ✅ Save
+    await newEvent.save();
 
     res.status(201).json({
       success: true,
-      message: parentEvent
-        ? "Match created under IPL ✅"
-        : "IPL created successfully ✅",
-      event,
+      message: "Event created successfully",
+      event: newEvent,
     });
 
   } catch (error) {
+
+    console.log("CREATE EVENT ERROR:", error);
+
     res.status(500).json({
       success: false,
-      message: "Create failed ❌",
-      error: error.message,
+      message: error.message,
     });
   }
 };
 
-// ================= GET ALL =================
+// ================= GET ALL EVENTS =================
 export const getAllEvents = async (req, res) => {
   try {
-    const events = await Event.find().populate("parentEvent");
+
+    const events = await Event.find()
+      .populate("parentEvent")
+      .sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
       events,
     });
+
   } catch (error) {
-    res.status(500).json({ message: error.message });
+
+    console.log(error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };
 
-// ================= GET PARENT (IPL) =================
+// ================= GET PARENT EVENTS =================
 export const getParentEvents = async (req, res) => {
   try {
-    const events = await Event.find({ parentEvent: null });
+
+    const events = await Event.find({
+      parentEvent: null,
+    });
 
     res.status(200).json({
       success: true,
       events,
     });
+
   } catch (error) {
-    res.status(500).json({ message: error.message });
+
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };
 
-// ================= GET CHILD (MATCHES) =================
+// ================= GET CHILD EVENTS =================
 export const getChildEvents = async (req, res) => {
   try {
-    const { parentId } = req.params;
 
-    const events = await Event.find({ parentEvent: parentId });
+    const events = await Event.find({
+      parentEvent: req.params.parentId,
+    });
 
     res.status(200).json({
       success: true,
       events,
     });
+
   } catch (error) {
-    res.status(500).json({ message: error.message });
+
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };
 
-// ================= DELETE =================
+// ================= DELETE EVENT =================
 export const deleteEvent = async (req, res) => {
   try {
-    const { id } = req.params;
 
-    await Event.deleteMany({ parentEvent: id });
+    await Event.findByIdAndDelete(req.params.id);
 
-    const event = await Event.findByIdAndDelete(id);
-
-    if (!event) {
-      return res.status(404).json({ message: "Event not found ❌" });
-    }
-
-    res.json({
+    res.status(200).json({
       success: true,
-      message: "Deleted successfully 🗑️",
+      message: "Event deleted",
     });
 
   } catch (error) {
-    res.status(500).json({ message: error.message });
+
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };
 
 // ================= TOGGLE ACTIVE =================
 export const toggleActiveEvent = async (req, res) => {
   try {
+
     const event = await Event.findById(req.params.id);
 
-    if (!event) {
-      return res.status(404).json({ message: "Not found ❌" });
-    }
-
     event.isActive = !event.isActive;
+
     await event.save();
 
-    res.json({
+    res.status(200).json({
       success: true,
-      message: event.isActive ? "Activated ✅" : "Deactivated ❌",
       event,
     });
 
   } catch (error) {
-    res.status(500).json({ message: error.message });
+
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };
 
-// ================= OPEN / CLOSE =================
+// ================= TOGGLE STATUS =================
 export const toggleEventStatus = async (req, res) => {
   try {
+
     const event = await Event.findById(req.params.id);
 
-    if (!event) {
-      return res.status(404).json({ message: "Not found ❌" });
-    }
+    event.status =
+      event.status === "Open"
+        ? "Closed"
+        : "Open";
 
-    event.status = event.status === "Open" ? "Closed" : "Open";
     await event.save();
 
-    res.json({
+    res.status(200).json({
       success: true,
-      message: event.status,
       event,
     });
 
   } catch (error) {
-    res.status(500).json({ message: error.message });
+
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };
