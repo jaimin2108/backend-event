@@ -4,15 +4,11 @@ import Event from "../Model/Eventmodel.js";
 export const createEvent = async (req, res) => {
   try {
 
-    console.log("BODY:", req.body);
-    console.log("FILE:", req.file);
+    console.log("REQ BODY:", req.body);
+    console.log("REQ FILE:", req.file);
 
-    const {
-      title,
-      parentEvent,
-      realPrice,
-      profit,
-    } = req.body;
+    const title = req.body.title;
+    const parentEvent = req.body.parentEvent || null;
 
     // ✅ Check title
     if (!title) {
@@ -22,32 +18,31 @@ export const createEvent = async (req, res) => {
       });
     }
 
-    // ✅ Image
-    const image = req.file
-      ? req.file.filename
-      : "";
+    // ✅ Image filename
+    let image = "";
 
-    // ✅ Create event
-    const newEvent = new Event({
+    if (req.file) {
+      image = req.file.filename;
+    }
+
+    // ✅ Save event
+    const event = await Event.create({
       title,
-      parentEvent: parentEvent || null,
+      parentEvent,
       image,
-      realPrice: realPrice || 0,
-      profit: profit || 0,
     });
 
-    // ✅ Save
-    await newEvent.save();
+    console.log("EVENT CREATED:", event);
 
     res.status(201).json({
       success: true,
       message: "Event created successfully",
-      event: newEvent,
+      event,
     });
 
   } catch (error) {
 
-    console.log("CREATE EVENT ERROR:", error);
+    console.log("CREATE ERROR:", error);
 
     res.status(500).json({
       success: false,
@@ -80,7 +75,27 @@ export const getAllEvents = async (req, res) => {
   }
 };
 
-// ================= GET PARENT EVENTS =================
+// ================= DELETE EVENT =================
+export const deleteEvent = async (req, res) => {
+  try {
+
+    await Event.findByIdAndDelete(req.params.id);
+
+    res.status(200).json({
+      success: true,
+      message: "Deleted successfully",
+    });
+
+  } catch (error) {
+
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// ================= PARENT EVENTS =================
 export const getParentEvents = async (req, res) => {
   try {
 
@@ -102,7 +117,7 @@ export const getParentEvents = async (req, res) => {
   }
 };
 
-// ================= GET CHILD EVENTS =================
+// ================= CHILD EVENTS =================
 export const getChildEvents = async (req, res) => {
   try {
 
@@ -113,26 +128,6 @@ export const getChildEvents = async (req, res) => {
     res.status(200).json({
       success: true,
       events,
-    });
-
-  } catch (error) {
-
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
-
-// ================= DELETE EVENT =================
-export const deleteEvent = async (req, res) => {
-  try {
-
-    await Event.findByIdAndDelete(req.params.id);
-
-    res.status(200).json({
-      success: true,
-      message: "Event deleted",
     });
 
   } catch (error) {
