@@ -3,6 +3,6 @@ import { AdminLogin } from "../Controller/AdminController.js";
 
 const router = express.Router();
 
-router.post("/adminlogin", AdminLogin);
+router.post("/login", AdminLogin);
 
 export default router;

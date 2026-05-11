@@ -4,6 +4,7 @@ dotenv.config({ path: "./Config/Config.env" });
 import express from "express";
 import cors from "cors";
 
+// ================= DATABASE =================
 import Dbconnection from "./DB/Dbconnection.js";
 
 // ================= ROUTES =================
@@ -19,7 +20,7 @@ import NotificationRouter from "./Router/NotificationRouter.js";
 // ================= APP =================
 const app = express();
 
-// ================= DATABASE =================
+// ================= DATABASE CONNECTION =================
 Dbconnection();
 
 // ================= MIDDLEWARE =================
@@ -43,28 +44,57 @@ app.use(
 app.use("/upload", express.static("upload"));
 app.use("/uploads", express.static("uploads"));
 
-// ================= ROUTES =================
+// ================= TEST ROUTE =================
+app.get("/", (req, res) => {
+  res.status(200).send("Backend Running Successfully 🚀");
+});
+
+// ================= API ROUTES =================
+
+// USER ROUTES
 app.use("/api/v1/user", Userrouter);
+
+// GALLERY ROUTES
 app.use("/api/gallery", GalleryRouter);
+
+// ADMIN ROUTES
 app.use("/api/v1/admin", Adminrouter);
+
+// EVENT ROUTES
 app.use("/api/v1/event", Eventrouter);
+
+// POST CATEGORY ROUTES
 app.use("/api/v1/postcategories", PostRoute);
+
+// BOOKING ROUTES
 app.use("/api/v1/booking", Bookingrouter);
+
+// CONTACT ROUTES
 app.use("/api/contact", Contactrouter);
+
+// NOTIFICATION ROUTES
 app.use("/api/v1/notification", NotificationRouter);
 
-// ================= HOME ROUTE =================
-app.get("/", (req, res) => {
-  res.status(200).send("API is running 🚀");
+// ================= EXTRA TEST ROUTE =================
+app.get("/test", (req, res) => {
+  res.send("Test Route Working ✅");
+});
+
+// ================= 404 HANDLER =================
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: "Route Not Found",
+  });
 });
 
 // ================= ERROR HANDLER =================
 app.use((err, req, res, next) => {
-  console.error(err);
+  console.log("Server Error:", err);
 
   res.status(500).json({
     success: false,
-    message: "Internal Server Error",
+    message: err.message || "Internal Server Error",
   });
 });
 

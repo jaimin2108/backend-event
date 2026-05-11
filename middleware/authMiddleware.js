@@ -25,6 +25,7 @@ export const protect = (req, res, next) => {
 
     // 4️⃣ Attach user/admin
     req.admin = decoded;
+    req.userId = decoded.id;
 
     next();
 
