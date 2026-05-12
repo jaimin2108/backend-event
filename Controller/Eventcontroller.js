@@ -3,14 +3,20 @@ import Event from "../Model/Eventmodel.js";
 // ================= CREATE EVENT =================
 export const createEvent = async (req, res) => {
   try {
-
     console.log("REQ BODY:", req.body);
     console.log("REQ FILE:", req.file);
 
-    const title = req.body.title;
-    const parentEvent = req.body.parentEvent || null;
+    const {
+      title,
+      parentEvent,
+      realPrice,
+      profit,
+      isActive,
+      status,
+    } = req.body;
 
-    // ✅ Check title
+    // ================= VALIDATION =================
+
     if (!title) {
       return res.status(400).json({
         success: false,
@@ -18,18 +24,33 @@ export const createEvent = async (req, res) => {
       });
     }
 
-    // ✅ Image filename
+    // ================= IMAGE =================
+
     let image = "";
 
     if (req.file) {
-      image = req.file.filename;
+      image = `/uploads/${req.file.filename}`;
     }
 
-    // ✅ Save event
+    // ================= CREATE EVENT =================
+
     const event = await Event.create({
       title,
-      parentEvent,
+
+      parentEvent: parentEvent || null,
+
       image,
+
+      realPrice: realPrice || 0,
+
+      profit: profit || 0,
+
+      isActive:
+        isActive !== undefined
+          ? isActive
+          : true,
+
+      status: status || "Open",
     });
 
     console.log("EVENT CREATED:", event);
