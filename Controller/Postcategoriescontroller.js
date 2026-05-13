@@ -1,14 +1,47 @@
 import Post from "../Model/Post.js";
-import UserCustomPrice from "../Model/UserCustomeprice.js"; // ✅ ADD THIS
+import UserCustomPrice from "../Model/UserCustomeprice.js";
 
 // CREATE MATCH
 export const createPost = async (req, res) => {
   try {
-    const { event, title, price, realPrice, date, time, place } = req.body;
+    const {
+      event,
+      title,
+      price,
+      date,
+      time,
+      place,
+    } = req.body;
+
+    // VALIDATION
+
+    if (!event) {
+      return res.status(400).json({
+        success: false,
+        message: "Event required",
+      });
+    }
+
+    if (!title) {
+      return res.status(400).json({
+        success: false,
+        message: "Title required",
+      });
+    }
+
+    if (!price) {
+      return res.status(400).json({
+        success: false,
+        message: "Price required",
+      });
+    }
+
+    // CREATE
+
     const post = await Post.create({
       event,
       title,
-      realPrice: realPrice || price,
+      price, // ✅ FIXED
       date,
       time,
       place,
@@ -16,45 +49,64 @@ export const createPost = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: "Match created successfully 🏏",
+      message:
+        "Match created successfully 🏏",
       post,
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.log("CREATE ERROR:", error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };
 
-// GET ALL MATCHES + USER PRICE ✅ UPDATED
-export const getAllPosts = async (req, res) => {
+// GET ALL MATCHES
+export const getAllPosts = async (
+  req,
+  res
+) => {
   try {
-    const userId = req.headers.userid; // ✅ ADD THIS
+    const userId = req.headers.userid;
 
-    const posts = await Post.find().populate({
-      path: "event",
-      populate: {
-        path: "parentEvent",
-      },
-    });
+    const posts = await Post.find()
+      .populate({
+        path: "event",
+        populate: {
+          path: "parentEvent",
+        },
+      })
+      .sort({ createdAt: -1 });
 
     let userPrices = [];
 
     if (userId) {
-      userPrices = await UserCustomPrice.find({ userId });
+      userPrices =
+        await UserCustomPrice.find({
+          userId,
+        });
     }
 
-    // ✅ MERGE USER PRICE
-    const finalPosts = posts.map((post) => {
-      const match = userPrices.find(
-        (u) => String(u.postId) === String(post._id)
-      );
+    // MERGE USER PRICE
 
-      return {
-        ...post._doc,
-        userPrice: match?.customPrice, // 👈 ADD THIS
-      };
-    });
+    const finalPosts = posts.map(
+      (post) => {
+        const match =
+          userPrices.find(
+            (u) =>
+              String(u.postId) ===
+              String(post._id)
+          );
 
-    console.log("POSTS 👉", JSON.stringify(finalPosts, null, 2));
+        return {
+          ...post._doc,
+          userPrice:
+            match?.customPrice || null,
+        };
+      }
+    );
 
     res.json({
       success: true,
@@ -62,30 +114,49 @@ export const getAllPosts = async (req, res) => {
     });
   } catch (error) {
     console.log("GET ERROR:", error);
+
     res.status(500).json({
+      success: false,
       message: "Fetch Failed",
     });
   }
 };
 
-// ✅ NEW FUNCTION: USER SET PRICE
-export const setUserPrice = async (req, res) => {
+// USER SET PRICE
+export const setUserPrice = async (
+  req,
+  res
+) => {
   try {
-    const { postId, price } = req.body;
-    const userId = req.headers.userid;
+    const { postId, price } =
+      req.body;
+
+    const userId =
+      req.headers.userid;
 
     if (!userId) {
-      return res.status(400).json({ message: "UserId required" });
+      return res.status(400).json({
+        success: false,
+        message: "UserId required",
+      });
     }
 
-    if (price < 100) {
-      return res.status(400).json({ message: "Price too low ❌" });
+    if (!price || price < 100) {
+      return res.status(400).json({
+        success: false,
+        message: "Price too low ❌",
+      });
     }
 
-    let record = await UserCustomPrice.findOne({ userId, postId });
+    let record =
+      await UserCustomPrice.findOne({
+        userId,
+        postId,
+      });
 
     if (record) {
       record.customPrice = price;
+
       await record.save();
     } else {
       await UserCustomPrice.create({
@@ -97,43 +168,88 @@ export const setUserPrice = async (req, res) => {
 
     res.json({
       success: true,
-      message: "User price updated ✅",
+      message:
+        "User price updated ✅",
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.log(
+      "USER PRICE ERROR:",
+      error
+    );
+
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };
 
 // UPDATE MATCH
-export const updatePost = async (req, res) => {
+export const updatePost = async (
+  req,
+  res
+) => {
   try {
-    const { event, title, price, realPrice, date, time, place } = req.body;
-    const post = await Post.findByIdAndUpdate(
-      req.params.id,
-      { event, title, realPrice: realPrice || price, date, time, place },
-      { new: true }
-    );
+    const {
+      event,
+      title,
+      price,
+      date,
+      time,
+      place,
+    } = req.body;
+
+    const post =
+      await Post.findByIdAndUpdate(
+        req.params.id,
+        {
+          event,
+          title,
+          price, // ✅ FIXED
+          date,
+          time,
+          place,
+        },
+        { new: true }
+      );
 
     res.json({
       success: true,
-      message: "Updated successfully ✅",
+      message:
+        "Updated successfully ✅",
       post,
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.log("UPDATE ERROR:", error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };
 
 // DELETE MATCH
-export const deletePost = async (req, res) => {
+export const deletePost = async (
+  req,
+  res
+) => {
   try {
-    await Post.findByIdAndDelete(req.params.id);
+    await Post.findByIdAndDelete(
+      req.params.id
+    );
 
     res.json({
       success: true,
-      message: "Deleted successfully 🗑️",
+      message:
+        "Deleted successfully 🗑️",
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.log("DELETE ERROR:", error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };
