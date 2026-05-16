@@ -28,54 +28,77 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // ================= CORS =================
-app.use(
-  cors({
-    origin: [
-      "http://localhost:3000",
-      "http://localhost:5173",
-      "https://event-app-eosin-rho.vercel.app",
-    ],
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true,
-  })
-);
+app.use(cors());
 
 // ================= STATIC FILES =================
-app.use("/upload", express.static("upload"));
-app.use("/uploads", express.static("uploads"));
+app.use(
+  "/upload",
+  express.static("upload")
+);
 
-// ================= TEST ROUTE =================
+app.use(
+  "/uploads",
+  express.static("uploads")
+);
+
+// ================= HOME ROUTE =================
 app.get("/", (req, res) => {
-  res.status(200).send("Backend Running Successfully 🚀");
+  res.status(200).send(
+    "Backend Running Successfully 🚀"
+  );
 });
 
 // ================= API ROUTES =================
 
 // USER ROUTES
-app.use("/api/v1/user", Userrouter);
+app.use(
+  "/api/v1/user",
+  Userrouter
+);
 
 // GALLERY ROUTES
-app.use("/api/gallery", GalleryRouter);
+app.use(
+  "/api/gallery",
+  GalleryRouter
+);
 
 // ADMIN ROUTES
-app.use("/api/v1/admin", Adminrouter);
+app.use(
+  "/api/v1/admin",
+  Adminrouter
+);
 
 // EVENT ROUTES
-app.use("/api/v1/event", Eventrouter);
+app.use(
+  "/api/v1/event",
+  Eventrouter
+);
 
 // POST CATEGORY ROUTES
-app.use("/api/v1/postcategories", PostRoute);
+app.use(
+  "/api/v1/postcategories",
+  PostRoute
+);
 
 // BOOKING ROUTES
-app.use("/api/v1/booking", Bookingrouter);
+app.use(
+  "/api/v1/booking",
+  Bookingrouter
+);
 
 // CONTACT ROUTES
-app.use("/api/contact", Contactrouter);
+app.use(
+  "/api/contact",
+  Contactrouter
+);
 
 // NOTIFICATION ROUTES
-app.use("/api/v1/notification", NotificationRouter);
+app.use(
+  "/api/v1/notification",
+  NotificationRouter
+);
 
-// ================= EXTRA TEST ROUTE =================
+// ================= TEST ROUTE =================
 app.get("/test", (req, res) => {
   res.send("Test Route Working ✅");
 });
@@ -89,18 +112,28 @@ app.use((req, res) => {
 });
 
 // ================= ERROR HANDLER =================
-app.use((err, req, res, next) => {
-  console.log("Server Error:", err);
+app.use(
+  (err, req, res, next) => {
+    console.log(
+      "SERVER ERROR 👉",
+      err
+    );
 
-  res.status(500).json({
-    success: false,
-    message: err.message || "Internal Server Error",
-  });
-});
+    res.status(500).json({
+      success: false,
+      message:
+        err.message ||
+        "Internal Server Error",
+    });
+  }
+);
 
 // ================= SERVER =================
-const PORT = process.env.PORT || 5000;
+const PORT =
+  process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT} 🚀`);
+  console.log(
+    `Server running on port ${PORT} 🚀`
+  );
 });
